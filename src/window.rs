@@ -12,7 +12,7 @@ pub fn display_image(image: DynamicImage) -> Result<(), Error> {
         borderless: false,
         title: true,
         resize: false,
-        scale: Scale::X1
+        scale: Scale::FitScreen
     };
     
     // define images
@@ -39,18 +39,34 @@ pub fn display_image(image: DynamicImage) -> Result<(), Error> {
     // }
     
     // Loop rows
+
+    // Image A is 3 wide
+    // Image B is 5 wide
+    // 0-2 should be A
+    // 3-7 should be B
+
+    // In Column 4 we want to get B pixel 2
+    // Getting B pixel in general:
+    // Column + 1 - A.width 
+    // 4 + 1 - 3 = 2
+
+
     for row in 0..window_height {
         for column in 0..window_width {
             let index = row * window_width + column;
             if column < rgba_image_left.dimensions().0 {
-                // let relevant_image_pixel = rgba_image_left.get_pixel(row, column);
-                // let rgba = relevant_image_pixel.to_rgba();
-                // let buffer_pixel = pixel_to_buffer_pixel(rgba[0], rgba[1], rgba[2], rgba[3]);
-                // buffer[index as usize] = buffer_pixel;
-                buffer[index as usize] = pixel_to_buffer_pixel(0, 125, 45, 57); 
+                let relevant_image_pixel = rgba_image_left.get_pixel(column, row);
+                let rgba = relevant_image_pixel.to_rgba();
+                let buffer_pixel = pixel_to_buffer_pixel(rgba[0], rgba[1], rgba[2], rgba[3]);
+                buffer[index as usize] = buffer_pixel;
+                // buffer[index as usize] = pixel_to_buffer_pixel(0, 125, 45, 57); 
             } else {
-                 // img[row][col]
-                buffer[index as usize] = pixel_to_buffer_pixel(0, 52, 107, 235); 
+                let image_pixel_column = column- rgba_image_right.dimensions().0;
+                let relevant_image_pixel = rgba_image_right.get_pixel(image_pixel_column, row);
+                let rgba = relevant_image_pixel.to_rgba();
+                let buffer_pixel = pixel_to_buffer_pixel(rgba[0], rgba[1], rgba[2], rgba[3]);
+                buffer[index as usize] = buffer_pixel;
+                // buffer[index as usize] = pixel_to_buffer_pixel(0, 52, 107, 235); 
             }
         }
     }
