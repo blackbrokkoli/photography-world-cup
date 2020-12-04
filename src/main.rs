@@ -9,6 +9,7 @@ mod image_to_window;
 
 fn main() {
     let args = command_line::read_command_line();
+    // get path
     let path = args.arg_path;
 
     let image_option = image::open(&path);
@@ -26,3 +27,4 @@ fn main() {
         }
     };
 }
+ 

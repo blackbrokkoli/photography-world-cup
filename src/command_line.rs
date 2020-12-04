@@ -4,7 +4,7 @@ Image Viewer.
 Usage:
   image_viewer.exe <path>
 ";
-
+ 
 #[derive(RustcDecodable)]
 pub struct Args {
     pub arg_path: String
