@@ -160,6 +160,7 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
     let right_image_scaling_factor_by_width = (IMG_WIDTH) as f64 / image_right.dimensions().0 as f64;
     let right_image_scaled_width = right_image_scaling_factor_by_width * image_right.dimensions().0  as f64 + 2_f64 ;
     let right_image_scaled_height = right_image_scaling_factor_by_width * image_right.dimensions().1  as f64 + 5_f64;
+    
     let image_right_resized = image_right.resize(
         right_image_scaled_width as u32, 
         right_image_scaled_height as u32, 
@@ -172,7 +173,7 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
 
     // convert to rgba
     let rgba_image_left = image_left_resized.to_rgba();
-    let rgba_image_right = image_right.to_rgba();
+    let rgba_image_right = image_right_resized.to_rgba();
 
     let layer_image_left = Layer {
         height: BUFFER_HEIGHT,
@@ -188,9 +189,9 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
         height: BUFFER_HEIGHT,
         width: BUFFER_WIDTH,
         corner_top_left: Coord {column: MARGIN * 2 + IMG_WIDTH, row: MARGIN},
-        corner_top_right: Coord {column: IMG_WIDTH * 2 + MARGIN * 2, row: MARGIN},
+        corner_top_right: Coord {column: IMG_WIDTH * 2, row: MARGIN},
         corner_bottom_left: Coord {column: MARGIN * 2 + IMG_WIDTH, row: image_right_resized.dimensions().1 + MARGIN},
-        corner_bottom_right: Coord {column: IMG_WIDTH * 2 + MARGIN * 2, row: image_right_resized.dimensions().1 + MARGIN},
+        corner_bottom_right: Coord {column: IMG_WIDTH * 2, row: image_right_resized.dimensions().1 + MARGIN},
         image: rgba_image_right,
     };
 
