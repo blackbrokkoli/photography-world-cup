@@ -7,6 +7,10 @@ use std::cmp;
 use std::num;
 
 const MARGIN: u32 = 15;
+const BUFFER_HEIGHT: u32 = 800;
+const BUFFER_WIDTH: u32 = 1000;
+
+const IMG_WIDTH: u32 = BUFFER_WIDTH / 2 - MARGIN / 2;
 
 pub struct Buffer {
     pub bytes: Vec<u32>,
@@ -88,6 +92,7 @@ impl Buffer {
     }
 }
 
+#[derive(Debug)]
 struct Coord {
     column: u32,
     row: u32,
@@ -117,13 +122,14 @@ impl Layer {
                 let index = column + row * self.width;
 
                 // check whether we should draw the image
-                if row >= self.corner_top_left.row && row <= self.corner_bottom_left.row && column >= self.corner_top_left.column && column <= self.corner_bottom_right.column 
+                if row >= self.corner_top_left.row && row < self.corner_bottom_left.row && column >= self.corner_top_left.column && column <= self.corner_bottom_right.column 
                 {
                     // Account for the space on top and to the left of the image
                     let image_pixel_row = row - self.corner_top_left.row;
                     let image_pixel_column = column - self.corner_top_left.column;
 
                     // Paint the actual buffer pixel :)
+                    // println!("Pixel row: {}, Pixel col: {}", image_pixel_row, image_pixel_column);
                     let current_pixel = self.image.get_pixel(image_pixel_column, image_pixel_row);
                     let rgba = current_pixel.to_rgba();
                     buffer[index as usize] = Buffer::rgba_to_buffer_pixel(rgba[0], rgba[1], rgba[2], rgba[3]);  
@@ -140,52 +146,62 @@ impl Layer {
 // TODO: What to return?
 pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Result<(), Error>  {
 
-    let left_image_scaling_factor_by_width = 245 as f64 / image_left.dimensions().0 as f64;
-    let left_image_scaling_factor_by_height = 490 as f64 / image_left.dimensions().1 as f64;
-
-    let left_image_scaling_factor = f64::max(left_image_scaling_factor_by_height, left_image_scaling_factor_by_width);
-
-    let left_image_scaled_width = left_image_scaling_factor * image_left.dimensions().0  as f64 ;
-    let left_image_scaled_height = left_image_scaling_factor * image_left.dimensions().1  as f64 ;
-
-    println!("width: {}, height: {}", left_image_scaled_width, left_image_scaled_height);
-    println!("width factor: {}, height factor: {}, factor: {}", left_image_scaling_factor_by_width, left_image_scaling_factor_by_height, left_image_scaling_factor);
+    // left image rescaling
+    let left_image_scaling_factor_by_width = (IMG_WIDTH) as f64 / image_left.dimensions().0 as f64;
+    let left_image_scaled_width = left_image_scaling_factor_by_width * image_left.dimensions().0  as f64  + 2_f64;
+    let left_image_scaled_height = left_image_scaling_factor_by_width * image_left.dimensions().1  as f64  + 5_f64;
+   
     let image_left_resized = image_left.resize(
         left_image_scaled_width as u32, 
         left_image_scaled_height as u32, 
         image::imageops::Lanczos3);
-    
 
+    // right image rescaling
+    let right_image_scaling_factor_by_width = (IMG_WIDTH) as f64 / image_right.dimensions().0 as f64;
+    let right_image_scaled_width = right_image_scaling_factor_by_width * image_right.dimensions().0  as f64 + 2_f64 ;
+    let right_image_scaled_height = right_image_scaling_factor_by_width * image_right.dimensions().1  as f64 + 5_f64;
+    let image_right_resized = image_right.resize(
+        right_image_scaled_width as u32, 
+        right_image_scaled_height as u32, 
+        image::imageops::Lanczos3);
+
+    // println!("IMAGE_WIDTH: {}", IMG_WIDTH);
+    // println!("width: {}, height: {}", left_image_scaled_width, left_image_scaled_height);
+    // println!("Scaling Factor: {}", left_image_scaling_factor_by_width);
+  
+
+    // convert to rgba
     let rgba_image_left = image_left_resized.to_rgba();
     let rgba_image_right = image_right.to_rgba();
 
     let layer_image_left = Layer {
-        height: 500,
-        width: 500,
-        corner_top_left: Coord {column: 10, row: 10},
-        corner_top_right: Coord {column: 245, row: 10},
-        corner_bottom_left: Coord {column: 10, row: 490},
-        corner_bottom_right: Coord {column: 245, row: 490},
+        height: BUFFER_HEIGHT,
+        width: BUFFER_WIDTH,
+        corner_top_left: Coord {column: MARGIN, row: MARGIN},
+        corner_top_right: Coord {column: IMG_WIDTH + MARGIN, row: MARGIN},
+        corner_bottom_left: Coord {column: MARGIN, row: image_left_resized.dimensions().1 + MARGIN},
+        corner_bottom_right: Coord {column: IMG_WIDTH + MARGIN, row: image_left_resized.dimensions().1 + MARGIN},
         image: rgba_image_left,
     };
 
     let layer_image_right = Layer {
-        height: 500,
-        width: 500,
-        corner_top_left: Coord {column: 255, row: 10},
-        corner_top_right: Coord {column: 495, row: 10},
-        corner_bottom_left: Coord {column: 255, row: 490},
-        corner_bottom_right: Coord {column: 495, row: 490},
+        height: BUFFER_HEIGHT,
+        width: BUFFER_WIDTH,
+        corner_top_left: Coord {column: MARGIN * 2 + IMG_WIDTH, row: MARGIN},
+        corner_top_right: Coord {column: IMG_WIDTH * 2 + MARGIN * 2, row: MARGIN},
+        corner_bottom_left: Coord {column: MARGIN * 2 + IMG_WIDTH, row: image_right_resized.dimensions().1 + MARGIN},
+        corner_bottom_right: Coord {column: IMG_WIDTH * 2 + MARGIN * 2, row: image_right_resized.dimensions().1 + MARGIN},
         image: rgba_image_right,
     };
 
+    // println!("Right Img Layer: {:?} | {:?} | {:?} | {:?}", layer_image_right.corner_top_left, layer_image_right.corner_top_right, layer_image_right.corner_bottom_left, layer_image_right.corner_bottom_right);
     // create and write the buffer(s)
     let left_buffer = layer_image_left.paint_layer();
     let right_buffer = layer_image_right.paint_layer();
 
     let buffer_clone = left_buffer.clone();
 
-    let mut buffer = Buffer::new(500, 500);
+    let mut buffer = Buffer::new(BUFFER_WIDTH, BUFFER_HEIGHT);
     buffer.write_buffer(&[left_buffer, right_buffer]);
   
     // Draw in Window
@@ -198,8 +214,8 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
 
     let mut window = Window::new(
         "UWU FUFU", 
-        500 as usize, 
-        500 as usize, 
+        BUFFER_WIDTH as usize, 
+        BUFFER_HEIGHT as usize, 
         window_options
     )?;
     
