@@ -8,9 +8,16 @@ extern crate minifb;
 mod command_line;
 mod window;
 mod image_to_window;
+// mod bundesliga;
 
 fn main() {
     let args = command_line::read_command_line();
+
+    // Bundesliga stuff
+    // bundesliga::compete()
+
+
+    // Image drawing stuff
     // get path
     let path = args.arg_path;
 

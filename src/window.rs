@@ -1,4 +1,4 @@
-use image::{DynamicImage, RgbaImage, GenericImage, Pixel, Rgba};
+use image::{DynamicImage, RgbaImage, GenericImage, Pixel, Rgba, imageops};
 
 use minifb::{Window, WindowOptions, Scale, Error, Key};
 use image_to_window::image_to_framebuffer;
@@ -47,9 +47,26 @@ impl Buffer {
         }
     }
 
-
     pub fn buffer_pixel_to_rgba(rgba: u32) -> (u8, u8, u8, u8) {
-        (255, 255, 255, 255)
+        let mut r: u8 = 0;
+        let mut g: u8 = 0;
+        let mut b: u8 = 0;
+        let mut a: u8 = 0;
+
+        a = (rgba >> 24) as u8;
+        r = (rgba >> 16) as u8;
+        g = (rgba >> 8) as u8;
+        b = rgba as u8;
+
+        //if rgba != 0 && rgba != u32::MAX {
+        //    println!("buffer: {:b}", rgba);
+        //    println!("  r: {:b}", r);
+        //    println!("  g: {:b}", g);
+        //    println!("  b: {:b}", b);
+        //    println!("  a: {:b}", a);            
+        //}
+
+        (r, g, b, a)
     }
 
     // 
@@ -88,20 +105,19 @@ struct Layer {
 }
 
 
-// TODO: There is no buffer to actually paint in yet
 impl Layer {
     // Expects that there is exactly one image per layer
     // paints the whole layer
     pub fn paint_layer(&self) -> Vec<u32> {
         
-        let mut buffer: Vec<u32> = vec![0; self.width as usize * self.height as usize];
+        let mut buffer: Vec<u32> = vec![0; (self.width * self.height) as usize];
         
         for row in 0..self.height {
             for column in 0..self.width {
                 let index = column + row * self.width;
 
                 // check whether we should draw the image
-                if row >= self.corner_top_left.row && row <= self.corner_bottom_left.row && column >= self.corner_top_left.column && column <= self.corner_bottom_left.column 
+                if row >= self.corner_top_left.row && row <= self.corner_bottom_left.row && column >= self.corner_top_left.column && column <= self.corner_bottom_right.column 
                 {
                     // Account for the space on top and to the left of the image
                     let image_pixel_row = row - self.corner_top_left.row;
@@ -123,10 +139,26 @@ impl Layer {
 // Define which elements and where;
 // TODO: What to return?
 pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Result<(), Error>  {
-    let rgba_image_left = image_left.to_rgba();
-    let rgba_image_right = image_right.to_rgba();
-    // TODO: scale images (not needed for functionality actually, will just cut off)
+
+    let left_image_scaling_factor_by_width = 245 as f64 / image_left.dimensions().0 as f64;
+    let left_image_scaling_factor_by_height = 490 as f64 / image_left.dimensions().1 as f64;
+
+    let left_image_scaling_factor = f64::max(left_image_scaling_factor_by_height, left_image_scaling_factor_by_width);
+
+    let left_image_scaled_width = left_image_scaling_factor * image_left.dimensions().0  as f64 ;
+    let left_image_scaled_height = left_image_scaling_factor * image_left.dimensions().1  as f64 ;
+
+    println!("width: {}, height: {}", left_image_scaled_width, left_image_scaled_height);
+    println!("width factor: {}, height factor: {}, factor: {}", left_image_scaling_factor_by_width, left_image_scaling_factor_by_height, left_image_scaling_factor);
+    let image_left_resized = image_left.resize(
+        left_image_scaled_width as u32, 
+        left_image_scaled_height as u32, 
+        image::imageops::Lanczos3);
     
+
+    let rgba_image_left = image_left_resized.to_rgba();
+    let rgba_image_right = image_right.to_rgba();
+
     let layer_image_left = Layer {
         height: 500,
         width: 500,
@@ -151,19 +183,21 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
     let left_buffer = layer_image_left.paint_layer();
     let right_buffer = layer_image_right.paint_layer();
 
+    let buffer_clone = left_buffer.clone();
+
     let mut buffer = Buffer::new(500, 500);
     buffer.write_buffer(&[left_buffer, right_buffer]);
   
     // Draw in Window
     let window_options = WindowOptions {
-                borderless: false,
-                title: true,
-                resize: false,
-                scale: Scale::X1
-            };
+        borderless: false,
+        title: true,
+        resize: false,
+        scale: Scale::X1
+    };
 
     let mut window = Window::new(
-        "Image Viewer", 
+        "UWU FUFU", 
         500 as usize, 
         500 as usize, 
         window_options
@@ -171,6 +205,7 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
     
     while window.is_open() && !window.is_key_down(Key::Escape) {
         window.update_with_buffer(&buffer.bytes);
+        // window.update_with_buffer(&buffer_clone);
     }
 
     Ok(())
