@@ -33,7 +33,7 @@ fn main() {
     
     match &image_left {
         Ok(image) => {
-            let error = window::display_image(image_left.unwrap(), image_right.unwrap());
+            let error = window::draw_uwufufu(image_left.unwrap(), image_right.unwrap());
             if let Err(err) = error {
                 println!("Error while opening window: {}", err);
             }
