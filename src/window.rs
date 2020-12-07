@@ -41,8 +41,8 @@ impl Buffer {
                 for layer in layers {
                     let rgba = Buffer::buffer_pixel_to_rgba(layer[index as usize]);
                     r = Buffer::add_single_channel(r, rgba.0);
-                    b = Buffer::add_single_channel(b, rgba.1);
-                    g = Buffer::add_single_channel(g, rgba.2);
+                    g = Buffer::add_single_channel(g, rgba.1);
+                    b = Buffer::add_single_channel(b, rgba.2);
                     a = Buffer::add_single_channel(a, rgba.3);
                 }
 
@@ -220,7 +220,7 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
         window_options
     )?;
     
-    while window.is_open() && !window.is_key_down(Key::Escape) {
+    while window.is_open() && !window.is_key_down(Key::Q) {
         window.update_with_buffer(&buffer.bytes);
         // window.update_with_buffer(&buffer_clone);
     }
