@@ -61,15 +61,6 @@ impl Buffer {
         r = (rgba >> 16) as u8;
         g = (rgba >> 8) as u8;
         b = rgba as u8;
-
-        //if rgba != 0 && rgba != u32::MAX {
-        //    println!("buffer: {:b}", rgba);
-        //    println!("  r: {:b}", r);
-        //    println!("  g: {:b}", g);
-        //    println!("  b: {:b}", b);
-        //    println!("  a: {:b}", a);            
-        //}
-
         (r, g, b, a)
     }
 
@@ -144,7 +135,7 @@ impl Layer {
 
 // Define which elements and where;
 // TODO: What to return?
-pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Result<(), Error>  {
+pub fn draw_uwufufu(image_left: &DynamicImage, image_right: &DynamicImage) -> Result<(), Error>  {
 
     // left image rescaling
     let left_image_scaling_factor_by_width = (IMG_WIDTH) as f64 / image_left.dimensions().0 as f64;
@@ -220,6 +211,8 @@ pub fn draw_uwufufu(image_left: DynamicImage, image_right: DynamicImage) -> Resu
         window_options
     )?;
     
+    // window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
+
     while window.is_open() && !window.is_key_down(Key::Q) {
         window.update_with_buffer(&buffer.bytes);
         // window.update_with_buffer(&buffer_clone);

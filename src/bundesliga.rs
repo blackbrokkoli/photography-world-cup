@@ -5,19 +5,27 @@ use window;
 
 struct Files {
     imagePaths: Vec<String>,
+    images: Vec<image::DynamicImage>,
 }
 
 impl Files {
     fn new(path: String) -> Files {
         let mut pathsVector: Vec<String> = Vec::new();
+        let mut imagesVector: Vec<image::DynamicImage> = Vec::new();
 
-        for imagePath in fs::read_dir(&path).unwrap() {
+        for (i, imagePath) in fs::read_dir(path).unwrap().enumerate() {
             pathsVector.push(imagePath.unwrap().path().display().to_string());
+            imagesVector.push(image::open(&pathsVector[i]).unwrap());
         }
         Files{
             imagePaths: pathsVector,
+            images: imagesVector,
         }
     }
+}
+
+struct Image {
+    file: image::DynamicImage,
 }
 
 struct Bundesliga {
@@ -37,17 +45,6 @@ struct Competitor {
     // path: std::fs::DirEntry,
     pathIndex: i32,
     points: i32,
-}
-
-impl Bundesliga {
-    // setup the league
-    fn setup() {
-
-    }
-    // run the league
-    fn compete() {
-
-    }
 }
 
 pub fn main(path: String) {
@@ -74,16 +71,12 @@ pub fn main(path: String) {
     }
 
     for game in league.games {
-        let image_left = image::open(&files.imagePaths[game.player_home.pathIndex as usize]);
-        let image_right = image::open(&files.imagePaths[game.player_guest.pathIndex as usize]);
+        let image_left = &files.images[game.player_home.pathIndex as usize];
+        let image_right = &files.images[game.player_guest.pathIndex as usize];
+        // let image_right = image::open(&files.imagePaths[game.player_guest.pathIndex as usize]);
 
-        match (image_left, image_right) {
-            (Ok(image_left_result), Ok(image_right_result)) => {
-                let error = window::draw_uwufufu(image_left_result, image_right_result);                        
-            }
-            _ => {
-                println!("Something went wrong with your images :)");
-            }
-        }
+
+        let error = window::draw_uwufufu(image_left, image_right);                        
+
     } 
 }
