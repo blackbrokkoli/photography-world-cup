@@ -3,8 +3,14 @@ name = "image_viewer"
 version = "0.1.0"
 authors = ["Eike Schulze <eike.schulze@web.de>"]
 
+edition = "2018"
 [dependencies]
-docopt = "0.7"
 image = "0.13"
 rustc-serialize = "0.3"
-minifb = "0.9"
+minifb = "0.19"
+chrono = "0.4"
+log = "0.4.11"
+env_logger = "0.8.2"
+cli-table = "0.4"
+rand = "0.8.0"
+native-dialog = "0.5.2"
