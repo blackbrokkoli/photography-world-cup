@@ -4,7 +4,7 @@ A very simple image viewer to test how the image crate works with minifb.
 
 ## Setup and Running
 
-* Install xbkcommon`
+* Install `xbkcommon`
 * Always run with `--release`
 
 ## Next Up
